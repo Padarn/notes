@@ -1,16 +1,16 @@
 import asyncio
 from typing import Any
 
-import metagpt.config as config
-
-cfg = config.Config("config/config2.yaml")
-
-
 from metagpt.actions import Action, UserRequirement
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.team import Team
+
+
+import metagpt.config as config
+
+cfg = config.Config("config/config2.yaml")
 
 
 class SpeakAloud(Action):
@@ -24,7 +24,7 @@ class SpeakAloud(Action):
     {context}
     ## YOUR TURN
     Now it's your turn, you should closely respond to your opponent's latest argument, state your position, defend your arguments, and attack your opponent's arguments,
-    craft a strong and emotional response in 80 words, in {name}'s rhetoric and viewpoints, your will argue:
+    craft a strong and emotional response in as few words as possible ideally under 10, in {name}'s rhetoric and viewpoints, your will argue:
     """
     name: str = "SpeakAloud"
 
@@ -46,7 +46,7 @@ class Debator(Role):
 
     def __init__(self, **data: Any):
         super().__init__(**data)
-        self.set_actions([SpeakAloud])
+        self.init_actions([SpeakAloud])
         self._watch([UserRequirement, SpeakAloud])
 
     async def _observe(self) -> int:
@@ -81,13 +81,13 @@ class Debator(Role):
 
 async def debate(idea: str, investment: float = 3.0, n_round: int = 5):
     """Run a team of presidents and watch they quarrel. :)"""
-    Biden = Debator(name="Biden", profile="Democrat", opponent_name="Trump")
-    Trump = Debator(name="Trump", profile="Republican", opponent_name="Biden")
+    Biden = Debator(name="Bob", profile="Really intelligent", opponent_name="Jack")
+    Trump = Debator(name="Jack", profile="Really stupid", opponent_name="Bob")
     team = Team()
     team.hire([Biden, Trump])
     team.invest(investment)
     team.run_project(
-        idea, send_to="Biden"
+        idea, send_to="Bob"
     )  # send debate topic to Biden and let him speak first
     await team.run(n_round=n_round)
 
@@ -103,4 +103,4 @@ def main(idea: str, investment: float = 3.0, n_round: int = 10):
     asyncio.run(debate(idea, investment, n_round))
 
 
-main("dogs are all black")
+_ = main("dogs are all black")

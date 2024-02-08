@@ -103,4 +103,4 @@ def main(idea: str, investment: float = 3.0, n_round: int = 10):
     asyncio.run(debate(idea, investment, n_round))
 
 
-_ = main("dogs are all black")
+main("dogs are all black")

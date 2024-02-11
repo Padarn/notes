@@ -6,6 +6,7 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.team import Team
+import chainlit as cl
 
 
 import metagpt.config as config
@@ -24,7 +25,10 @@ class SpeakAloud(Action):
     {context}
     ## YOUR TURN
     Now it's your turn, you should closely respond to your opponent's latest argument, state your position, defend your arguments, and attack your opponent's arguments,
-    craft a strong and emotional response in as few words as possible ideally under 10, in {name}'s rhetoric and viewpoints, your will argue:
+    craft a strong and emotional response in as few words as possible, in {name}'s rhetoric and viewpoints. Do not add any response
+    before replying with your argument
+     
+    You will argue:
     """
     name: str = "SpeakAloud"
 
@@ -67,6 +71,8 @@ class Debator(Role):
             context=context, name=self.name, opponent_name=self.opponent_name
         )
 
+        await cl.Message(content=rsp, author=self.name).send()
+
         msg = Message(
             content=rsp,
             role=self.profile,
@@ -89,10 +95,11 @@ async def debate(idea: str, investment: float = 3.0, n_round: int = 5):
     team.run_project(
         idea, send_to="Bob"
     )  # send debate topic to Biden and let him speak first
-    await team.run(n_round=n_round)
+    result = await team.run(n_round=n_round)
+    return team.env.history
 
 
-def main(idea: str, investment: float = 3.0, n_round: int = 10):
+def run_debate(idea: str, investment: float = 3.0, n_round: int = 10):
     """
     :param idea: Debate topic, such as "Topic: The U.S. should commit more in climate change fighting"
                  or "Trump: Climate change is a hoax"
@@ -100,7 +107,9 @@ def main(idea: str, investment: float = 3.0, n_round: int = 10):
     :param n_round: maximum rounds of the debate
     :return:
     """
-    asyncio.run(debate(idea, investment, n_round))
+    return asyncio.run(debate(idea, investment, n_round))
 
 
-main("dogs are all black")
+@cl.on_message
+async def main(message: cl.Message):
+    result = run_debate(message.content, n_round=3)
